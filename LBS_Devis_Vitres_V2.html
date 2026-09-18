@@ -1,0 +1,67 @@
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0b0b"><title>LBS Devis Vitres V2</title>
+<style>
+:root{--g:#7cff00;--bg:#090909;--c:#151515;--l:#2c2c2c;--m:#aaa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:850px;margin:auto;padding:16px 14px 50px}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.logo{font-size:22px;font-weight:900}.logo span{color:var(--g)}.badge{font-size:11px;color:var(--g);border:1px solid #333;border-radius:20px;padding:6px 9px}.card{background:var(--c);border:1px solid var(--l);border-radius:16px;padding:15px;margin:12px 0}h2{font-size:16px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}label{display:block;color:var(--m);font-size:11px;margin-bottom:5px}input,select,textarea,button{width:100%;padding:11px;border-radius:10px;border:1px solid #363636;background:#0d0d0d;color:#fff;font-size:14px}textarea{min-height:80px}.primary{background:var(--g);color:#000;border:0;font-weight:900}.secondary{background:#222;font-weight:800}.danger{background:#321515;color:#ffb5b5}.items{display:flex;flex-direction:column;gap:9px}.item{border:1px solid #333;border-radius:12px;padding:11px}.total{font-size:29px;font-weight:900;color:var(--g)}.sub,.small{font-size:12px;color:var(--m);line-height:1.5}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:7px 4px;border-bottom:1px solid #292929;text-align:left}th{color:var(--g)}details summary{color:var(--g);font-weight:900;cursor:pointer}
+@media(max-width:560px){.grid,.actions{grid-template-columns:1fr}.full{grid-column:auto}}@media print{body{background:#fff;color:#000}.card{background:#fff;color:#000;border:1px solid #bbb}.no-print,details,.badge{display:none!important}.logo span,.total,th{color:#000}input,select,textarea{border:0;background:#fff;color:#000;padding:2px}.sub,.small,label{color:#555}}
+</style></head><body><div class="wrap">
+<div class="head"><div class="logo">LBS <span>DEVIS VITRES</span></div><div class="badge">V2 • hors ligne</div></div>
+
+<div class="card"><h2>1. Client</h2><div class="grid">
+<div><label>Nom / entreprise</label><input id="client" placeholder="Ex. Cabinet vétérinaire"></div>
+<div><label>Téléphone</label><input id="phone" placeholder="06..."></div>
+<div class="full"><label>Adresse du chantier</label><input id="address" placeholder="Adresse"></div>
+<div><label>Date</label><input id="date" type="date"></div><div><label>N° de devis</label><input id="quoteNo"></div>
+</div></div>
+
+<div class="card"><h2>2. Prestation</h2><div class="grid">
+<div><label>Prestation</label><select id="mode"><option value="ie">Intérieur + extérieur</option><option value="in">Intérieur uniquement</option><option value="out">Extérieur uniquement</option></select></div>
+<div><label>Fréquence</label><select id="freq"><option>Ponctuel</option><option>Mensuel</option><option>Tous les 2 mois</option><option>Hebdomadaire</option></select></div>
+<div><label>Remise fréquence (%)</label><input id="discount" type="number" min="0" max="50" value="0"></div>
+<div><label>Déplacement (€)</label><input id="travel" type="number" min="0" value="0"></div>
+</div></div>
+
+<div class="card"><h2>3. Vitres</h2><div id="items" class="items"></div><button class="secondary no-print" onclick="addItem()">＋ Ajouter une ligne</button><p class="small">Le prix unitaire vient de ta grille LBS. Les dimensions permettent de contrôler la surface.</p></div>
+
+<div class="card"><h2>4. Options</h2><div class="grid">
+<div><label>Encadrements (€)</label><input id="frames" type="number" min="0" value="0"></div>
+<div><label>Rails / détails (€)</label><input id="rails" type="number" min="0" value="0"></div>
+<div><label>Difficulté / accès (€)</label><input id="difficulty" type="number" min="0" value="0"></div>
+<div><label>Minimum prestation (€)</label><input id="minimum" type="number" min="0" value="50"></div>
+</div></div>
+
+<div class="card"><h2>5. Total</h2><div class="sub">Base vitres</div><div id="base" class="total">0,00 €</div>
+<div class="sub">Options + déplacement : <span id="opts">0,00 €</span></div><div class="sub">Remise : <span id="disc">0,00 €</span></div>
+<hr style="border:0;border-top:1px solid #292929"><div class="sub">TOTAL HT</div><div id="total" class="total">0,00 €</div>
+<div class="sub">TVA <span id="vatLabel">0%</span> • TOTAL TTC : <strong id="ttc">0,00 €</strong></div></div>
+
+<div class="card"><h2>6. Notes</h2><textarea id="notes" placeholder="Ex. encadrements inclus, accès facile, prestation mensuelle..."></textarea></div>
+
+<div class="card no-print"><div class="actions">
+<button class="primary" onclick="window.print()">🖨️ Imprimer / PDF</button><button class="secondary" onclick="saveDraft()">💾 Sauvegarder</button>
+<button class="secondary" onclick="location.reload()">↺ Nouveau devis</button><button class="danger" onclick="resetTariffs()">Réinitialiser tarifs</button>
+</div></div>
+
+<details class="card no-print"><summary>⚙️ Réglages — grille tarifaire LBS</summary>
+<p class="small">Modifie les prix puis enregistre. Ils restent sur cet iPhone.</p>
+<div style="overflow:auto"><table><thead><tr><th>Type</th><th>Petit</th><th>Standard</th><th>Grand</th></tr></thead><tbody id="tariffTable"></tbody></table></div>
+<div class="grid" style="margin-top:10px"><div><label>TVA (%)</label><input id="vat" type="number" min="0" max="30" value="0"></div>
+<div><label>Minimum par devis (€)</label><input id="minDefault" type="number" min="0" value="50"></div></div>
+<button class="primary" style="margin-top:10px" onclick="saveTariffs()">Enregistrer les réglages</button></details>
+</div>
+<script>
+const DEFAULT={"Fenêtre 1 vantail":[5,6,8],"Fenêtre 2 vantaux":[7,9,12],"Porte-fenêtre":[7,9,12],"Baie vitrée":[10,15,20],"Grande baie vitrée":[15,20,25],"Vitrine":[8,12,18],"Fenêtre arrondie":[12,15,20]};
+let tariffs=JSON.parse(localStorage.getItem("lbs_tariffs")||"null")||JSON.parse(JSON.stringify(DEFAULT));const $=id=>document.getElementById(id);
+const money=n=>(Math.round(n*100)/100).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+$("date").value=new Date().toISOString().slice(0,10);$("quoteNo").value="LBS-"+new Date().toISOString().slice(0,10).replaceAll("-","")+"-01";
+$("vat").value=localStorage.getItem("lbs_vat")||"0";$("minDefault").value=localStorage.getItem("lbs_min")||"50";$("minimum").value=$("minDefault").value;
+function addItem(){let d=document.createElement("div");d.className="item";d.innerHTML=`<div class="grid"><div><label>Type</label><select class="type">${Object.keys(tariffs).map(x=>`<option>${x}</option>`).join("")}</select></div><div><label>Taille</label><select class="size"><option value="0">Petit</option><option value="1" selected>Standard</option><option value="2">Grand</option></select></div><div><label>Largeur (m)</label><input class="w" type="number" min="0" step=".01"></div><div><label>Hauteur (m)</label><input class="h" type="number" min="0" step=".01"></div><div><label>Quantité</label><input class="qty" type="number" min="1" value="1"></div><div><label>Prix unitaire</label><input class="unit" readonly></div><div class="full"><label>Surface totale</label><input class="area" readonly></div><button class="danger no-print" onclick="this.closest('.item').remove();calc()">Supprimer</button></div>`;$("items").appendChild(d);d.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc));calc()}
+addItem();
+function calc(){let base=0;document.querySelectorAll(".item").forEach(x=>{let t=x.querySelector(".type").value,s=+x.querySelector(".size").value,q=Math.max(1,+x.querySelector(".qty").value||1),u=tariffs[t][s];base+=u*q;x.querySelector(".unit").value=money(u);let a=(+x.querySelector(".w").value||0)*(+x.querySelector(".h").value||0)*q;if($("mode").value==="ie")a*=2;x.querySelector(".area").value=a?a.toFixed(2)+" m²":"—"});let o=(+$("frames").value||0)+(+$("rails").value||0)+(+$("difficulty").value||0)+(+$("travel").value||0),ht=Math.max(+$("minimum").value||0,base+o),p=Math.min(50,Math.max(0,+$("discount").value||0)),d=ht*p/100;ht-=d;let v=+$("vat").value||0;$("base").textContent=money(base);$("opts").textContent=money(o);$("disc").textContent=money(d);$("total").textContent=money(ht);$("vatLabel").textContent=v+"%";$("ttc").textContent=money(ht*(1+v/100))}
+document.addEventListener("input",calc);
+function renderTariffs(){$("tariffTable").innerHTML=Object.entries(tariffs).map(([n,v])=>`<tr><td>${n}</td>${v.map((x,i)=>`<td><input data-t="${n}" data-i="${i}" type="number" min="0" step=".5" value="${x}"></td>`).join("")}</tr>`).join("")}renderTariffs();
+function saveTariffs(){document.querySelectorAll("#tariffTable input").forEach(x=>tariffs[x.dataset.t][+x.dataset.i]=+x.value||0);localStorage.setItem("lbs_tariffs",JSON.stringify(tariffs));localStorage.setItem("lbs_vat",$("vat").value);localStorage.setItem("lbs_min",$("minDefault").value);$("minimum").value=$("minDefault").value;renderTariffs();calc();alert("Tarifs LBS enregistrés.")}
+function resetTariffs(){if(confirm("Réinitialiser la grille LBS ?")){tariffs=JSON.parse(JSON.stringify(DEFAULT));localStorage.removeItem("lbs_tariffs");renderTariffs();calc()}}
+function saveDraft(){localStorage.setItem("lbs_last_quote",JSON.stringify({client:$("client").value,phone:$("phone").value,address:$("address").value,date:$("date").value,quoteNo:$("quoteNo").value,notes:$("notes").value}));alert("Devis sauvegardé sur cet iPhone.")}
+</script></body></html>
